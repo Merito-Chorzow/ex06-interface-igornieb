@@ -1,0 +1,29 @@
+READY
+set=0.000 ticks=1 drop=0 broken=0
+OK set=0.420
+rx_free=126 tx_free=127 rx_count=1
+ECHO hello world
+--- BURST TEST ---
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+ERR
+set=0.420 ticks=46 drop=1073 broken=0
