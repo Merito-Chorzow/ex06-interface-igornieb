@@ -18,8 +18,13 @@ int main(void){
     for(int i=0;i<5;i++) shell_tick(&sh);
 
     // Burst > RB_SIZE — zasymuluj przepełnienie
+    printf("--- BURST TEST ---\n");
     for(int i=0;i<200;i++) shell_rx_bytes(&sh, "noop\r\n");
     for(int i=0;i<20;i++) shell_tick(&sh);
+
+    // flush partial line
+    shell_rx_bytes(&sh, "\r\n");
+    for(int i=0;i<5;i++) shell_tick(&sh);
 
     // końcowy status
     shell_rx_bytes(&sh, "get\r\n");

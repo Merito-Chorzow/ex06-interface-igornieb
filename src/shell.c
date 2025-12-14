@@ -18,9 +18,7 @@ void shell_init(shell_t* sh){
 
 void shell_rx_bytes(shell_t* sh, const char* s){
     while (*s) {
-        if (!rb_put(&sh->rx, (uint8_t)*s++)) {
-            // overflow na RX — jeżeli odetnie linię, wykryjemy to w tick
-        }
+        rb_put(&sh->rx, (uint8_t)*s++);
     }
 }
 
@@ -54,8 +52,15 @@ void shell_tick(shell_t* sh){
 
     static char line[128];
     static size_t n = 0;
+    static size_t prev_dropped = 0;  // track previous dropped byte count
     uint8_t b;
-    int saw_newline = 0;
+
+    // detect if overflow occurred while processing a line
+    if (sh->rx.dropped > prev_dropped && n > 0) {
+        // overflow happened while we were in the middle of a line
+        sh->broken_lines++;
+    }
+    prev_dropped = sh->rx.dropped;
 
     while (rb_get(&sh->rx, &b)){
         if (b == '\n' || b == '\r'){
@@ -63,7 +68,6 @@ void shell_tick(shell_t* sh){
                 line[n] = 0;
                 process_line(sh, line);
                 n = 0;
-                saw_newline = 1;
             }
         } else if (n + 1 < sizeof(line)){
             line[n++] = (char)b;
@@ -73,10 +77,6 @@ void shell_tick(shell_t* sh){
             n = 0;
         }
     }
-
-    // heurystyka: jeśli był overflow (rx.dropped>0) i nie domknęliśmy linii,
-    // a w kolejnych tickach pojawia się początek nowej komendy — rośnie broken_lines.
-    (void)saw_newline;
 
     // "wysyłka" — w urządzeniu byłby UART; tu wypisujemy na stdout
     while (rb_get(&sh->tx, &b)) { putchar((char)b); }
